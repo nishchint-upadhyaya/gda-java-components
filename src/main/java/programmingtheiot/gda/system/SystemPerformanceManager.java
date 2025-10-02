@@ -22,6 +22,9 @@ import programmingtheiot.common.IDataMessageListener;
 import programmingtheiot.common.ResourceNameEnum;
 import programmingtheiot.data.SystemPerformanceData;
 
+import java.util.logging.Logger;
+import java.util.logging.Level;
+
 /**
  * Shell representation of class for student implementation.
  * 
@@ -29,7 +32,8 @@ import programmingtheiot.data.SystemPerformanceData;
 public class SystemPerformanceManager
 {
 	// private var's
-	
+	private static final Logger _Logger = Logger.getLogger(SystemPerformanceManager.class.getName());
+	private int pollRate = ConfigConst.DEFAULT_POLL_CYCLES;
 	
 	// constructors
 	
@@ -39,6 +43,13 @@ public class SystemPerformanceManager
 	 */
 	public SystemPerformanceManager()
 	{
+		this.pollRate =
+			ConfigUtil.getInstance().getInteger(
+				ConfigConst.GATEWAY_DEVICE, ConfigConst.POLL_CYCLES_KEY, ConfigConst.DEFAULT_POLL_CYCLES);
+		
+		if (this.pollRate <= 0) {
+			this.pollRate = ConfigConst.DEFAULT_POLL_CYCLES;
+	}
 	}
 	
 	
@@ -52,12 +63,18 @@ public class SystemPerformanceManager
 	{
 	}
 	
-	public void startManager()
+	public boolean startManager()
 	{
+		_Logger.info("SystemPerformanceManager is starting...");
+	
+		return true;
 	}
 	
-	public void stopManager()
+	public boolean stopManager()
 	{
+		_Logger.info("SystemPerformanceManager is stopped.");
+	
+		return true;
 	}
 	
 }
