@@ -72,28 +72,36 @@ public class GatewayDeviceApp
 		
 		gwApp.startApp();
 		
-		boolean runForever =
-			ConfigUtil.getInstance().getBoolean(ConfigConst.GATEWAY_DEVICE, ConfigConst.ENABLE_RUN_FOREVER_KEY);
-		
-		if (runForever) {
-			try {
-				while (true) {
-					Thread.sleep(2000L);
-				}
-			} catch (InterruptedException e) {
-				// ignore
-			}
-			
-			gwApp.stopApp(0);
-		} else {
-			try {
-				Thread.sleep(DEFAULT_TEST_RUNTIME);
-			} catch (InterruptedException e) {
-				// ignore
-			}
-			
-			gwApp.stopApp(0);
+		try {
+			Thread.sleep(65000L);
+		} catch (InterruptedException e) {
+			// ignore
 		}
+		
+		gwApp.stopApp(0);
+
+		// boolean runForever =
+		// 	ConfigUtil.getInstance().getBoolean(ConfigConst.GATEWAY_DEVICE, ConfigConst.ENABLE_RUN_FOREVER_KEY);
+		
+		// if (runForever) {
+		// 	try {
+		// 		while (true) {
+		// 			Thread.sleep(2000L);
+		// 		}
+		// 	} catch (InterruptedException e) {
+		// 		// ignore
+		// 	}
+			
+		// 	gwApp.stopApp(0);
+		// } else {
+		// 	try {
+		// 		Thread.sleep(DEFAULT_TEST_RUNTIME);
+		// 	} catch (InterruptedException e) {
+		// 		// ignore
+		// 	}
+			
+		// 	gwApp.stopApp(0);
+		// }
 	}
 	
 	/**
@@ -132,7 +140,7 @@ public class GatewayDeviceApp
 				_Logger.warning("Failed to parse command line args. Ignoring - using defaults.");
 			}
 		}
-
+		
 		return argMap;
 	}
 	
@@ -175,11 +183,20 @@ public class GatewayDeviceApp
 			_Logger.log(Level.SEVERE, "Failed to cleanly stop GDA. Exiting.", e);
 		}
 		
-		System.exit(code);
+		// System.exit(code);
 	}
 	
 	
 	// private methods
-	
+	private void initConfig(String fileName)
+	{
+		_Logger.info("Calling initConfig() with fileName: " + fileName);
+	}
 
+	// private void parseArgs(String[] args)
+	// {
+	// 	_Logger.info("parseArgs() method called.");
+		
+	// 	initConfig(null);
+	// }
 }
