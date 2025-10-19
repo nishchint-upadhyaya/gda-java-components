@@ -62,6 +62,8 @@ public class DeviceDataManager implements IDataMessageListener
 	private IRequestResponseClient smtpClient = null;
 	private CoapServerGateway coapServer = null;
 	private SystemPerformanceManager sysPerfMgr = null;
+
+	private RedisPersistenceAdapter redisClient;
 	
 	// constructors
 	
@@ -101,7 +103,8 @@ public class DeviceDataManager implements IDataMessageListener
 	{
 		super();
 		
-		initConnections();
+		// initConnections();
+		initManager();
 	}
 	
 	
@@ -120,6 +123,10 @@ public class DeviceDataManager implements IDataMessageListener
 				_Logger.warning("Error flag set for ActuatorData instance.");
 			}
 			
+			if (this.redisClient.connectClient()) {
+			    this.redisClient.storeData(resourceName.getDeviceName(), 0, data);
+			}
+
 			return true;
 		} else {
 			return false;
@@ -153,6 +160,10 @@ public class DeviceDataManager implements IDataMessageListener
 			if (data.hasError()) {
 				_Logger.warning("Error flag set for SensorData instance.");
 			}
+
+			if (this.redisClient.connectClient()) {
+			    this.redisClient.storeData(resourceName.getDeviceName(), 0, data);
+			}
 			
 			return true;
 		} else {
@@ -168,6 +179,10 @@ public class DeviceDataManager implements IDataMessageListener
 			
 			if (data.hasError()) {
 				_Logger.warning("Error flag set for SystemPerformanceData instance.");
+			}
+
+			if (this.redisClient.connectClient()) {
+			    this.redisClient.storeData(resourceName.getDeviceName(), 0, data);
 			}
 			
 			return true;
@@ -185,12 +200,20 @@ public class DeviceDataManager implements IDataMessageListener
 		if (this.sysPerfMgr != null) {
 			this.sysPerfMgr.startManager();
 		}
+
+		if (this.redisClient != null) {
+			this.redisClient.connectClient();
+		}
 	}
 	
 	public void stopManager()
 	{
 		if (this.sysPerfMgr != null) {
 			this.sysPerfMgr.stopManager();
+		}
+
+		if (this.redisClient != null) {
+			this.redisClient.disconnectClient();
 		}
 	}
 
@@ -216,6 +239,10 @@ public class DeviceDataManager implements IDataMessageListener
 		if (this.enableSystemPerf) {
 			this.sysPerfMgr = new SystemPerformanceManager();
 			this.sysPerfMgr.setDataMessageListener(this);
+		}
+
+		if (this.redisClient == null) {
+			this.redisClient = new RedisPersistenceAdapter();
 		}
 		
 		if (this.enableMqttClient) {
