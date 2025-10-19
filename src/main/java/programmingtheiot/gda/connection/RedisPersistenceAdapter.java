@@ -41,6 +41,10 @@ public class RedisPersistenceAdapter implements IPersistenceClient
 		Logger.getLogger(RedisPersistenceAdapter.class.getName());
 	
 	// private var's
+	private String host = null;
+    private int port = 0;
+    private Jedis redisClient = null;
+    private boolean isConnected = false;
 	
 	
 	// constructors
@@ -67,7 +71,31 @@ public class RedisPersistenceAdapter implements IPersistenceClient
 	@Override
 	public boolean connectClient()
 	{
-		return false;
+		if (isConnected) {
+            _Logger.warning("Redis client already connected.");
+            return true;
+        }
+        try {
+			ConfigUtil config = ConfigUtil.getInstance();
+        	String password = config.getProperty(ConfigConst.DATA_GATEWAY_SERVICE, ConfigConst.PASSWORD_KEY, "");
+
+            this.redisClient = new Jedis(this.host, this.port);
+
+			// Authenticate with password
+			if (password != null && !password.isEmpty()) {
+				this.redisClient.auth("default", password); // Redis Cloud uses 'default' user by default
+				_Logger.info("Authenticated with Redis Cloud using user 'default'.");
+			} else {
+				_Logger.warning("No password provided for Redis authentication.");
+			}
+			
+            this.isConnected = true;
+            _Logger.info("Connected to Redis at " + host + ":" + port);
+        } catch (Exception e) {
+            _Logger.severe("Failed to connect to Redis: " + e.getMessage());
+            this.isConnected = false;
+        }
+        return this.isConnected;
 	}
 
 	/**
@@ -76,8 +104,24 @@ public class RedisPersistenceAdapter implements IPersistenceClient
 	@Override
 	public boolean disconnectClient()
 	{
-		return false;
+		if (!isConnected) {
+            _Logger.warning("Redis client already disconnected.");
+            return true;
+        }
+        try {
+            this.redisClient.close();
+            this.isConnected = false;
+            _Logger.info("Disconnected from Redis.");
+        } catch (Exception e) {
+            _Logger.severe("Failed to disconnect from Redis: " + e.getMessage());
+        }
+        return !this.isConnected;
 	}
+	
+	 public boolean isClientConnected() {
+	        return this.isConnected;
+	 }
+	 
 
 	/**
 	 *
@@ -85,7 +129,7 @@ public class RedisPersistenceAdapter implements IPersistenceClient
 	@Override
 	public ActuatorData[] getActuatorData(String topic, Date startDate, Date endDate)
 	{
-		return null;
+		return new ActuatorData[0];
 	}
 
 	/**
@@ -94,7 +138,7 @@ public class RedisPersistenceAdapter implements IPersistenceClient
 	@Override
 	public SensorData[] getSensorData(String topic, Date startDate, Date endDate)
 	{
-		return null;
+		return new SensorData[0];
 	}
 
 	/**
@@ -111,7 +155,13 @@ public class RedisPersistenceAdapter implements IPersistenceClient
 	@Override
 	public boolean storeData(String topic, int qos, ActuatorData... data)
 	{
-		return false;
+		if (!isClientConnected() || data == null) return false;
+	    	var du = DataUtil.getInstance();
+	    	for (ActuatorData d : data) {
+	    		String json = du.actuatorDataToJson(d);   // <-- not d.toString()
+	    		this.redisClient.rpush(topic, json);
+	    	}
+	    return true;
 	}
 
 	/**
@@ -120,7 +170,13 @@ public class RedisPersistenceAdapter implements IPersistenceClient
 	@Override
 	public boolean storeData(String topic, int qos, SensorData... data)
 	{
-		return false;
+		if (!isClientConnected() || data == null) return false;
+    	var du = DataUtil.getInstance();
+    	for (SensorData d : data) {
+    		String json = du.sensorDataToJson(d);  
+    		this.redisClient.rpush(topic, json);
+    	}
+    	return true;
 	}
 
 	/**
@@ -129,9 +185,14 @@ public class RedisPersistenceAdapter implements IPersistenceClient
 	@Override
 	public boolean storeData(String topic, int qos, SystemPerformanceData... data)
 	{
-		return false;
+		if (!isClientConnected() || data == null) return false;
+    	var du = DataUtil.getInstance();
+    	for (SystemPerformanceData d : data) {
+    		String json = du.systemPerformanceDataToJson(d);  
+    		this.redisClient.rpush(topic, json);
+    	}
+    	return true;
 	}
-	
 	
 	// private methods
 	
@@ -140,6 +201,13 @@ public class RedisPersistenceAdapter implements IPersistenceClient
 	 */
 	private void initConfig()
 	{
+		ConfigUtil config = ConfigUtil.getInstance();
+    	this.host = config.getProperty(ConfigConst.DATA_GATEWAY_SERVICE, ConfigConst.HOST_KEY, "localhost");
+    	this.port = config.getInteger(ConfigConst.DATA_GATEWAY_SERVICE, ConfigConst.PORT_KEY, 6379);
+
+		_Logger.info("Loaded configuration: host=" + this.host + ", port=" + this.port);
+
 	}
+	
 
 }

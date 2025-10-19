@@ -80,3 +80,13 @@ enableSystemPerformance = False
 testGdaDataPath         = /tmp/gda-data
 testCdaDataPath         = /tmp/cda-data
 testEmptyApp            = False
+
+#
+# Persistence client configuration information
+#
+[Data.GatewayService]
+credFile = ./cred/PiotPersistenceCred.props
+host = redis-12836.c246.us-east-1-4.ec2.redns.redis-cloud.com
+port = 12836
+password = li97J8dPv0mnKiBRdr5N4e3Bzn2O8NM0
+enableCrypt = False
