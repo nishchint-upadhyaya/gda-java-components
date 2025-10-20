@@ -80,6 +80,7 @@ enableSystemPerformance = False
 testGdaDataPath         = /tmp/gda-data
 testCdaDataPath         = /tmp/cda-data
 testEmptyApp            = False
+enableRunForever        = True
 
 #
 # Persistence client configuration information
