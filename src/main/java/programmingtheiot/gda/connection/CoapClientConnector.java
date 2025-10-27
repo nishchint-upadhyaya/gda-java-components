@@ -11,15 +11,18 @@
 
 package programmingtheiot.gda.connection;
 
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.californium.core.CoapClient;
+import org.eclipse.californium.core.WebLink;
 
 import programmingtheiot.common.ConfigConst;
 import programmingtheiot.common.ConfigUtil;
 import programmingtheiot.common.IDataMessageListener;
 import programmingtheiot.common.ResourceNameEnum;
+import programmingtheiot.gda.connection.handlers.GenericCoapResponseHandler;
 
 /**
  * Shell representation of class for student implementation.
@@ -88,8 +91,23 @@ public class CoapClientConnector implements IRequestResponseClient
 	@Override
 	public boolean sendDiscoveryRequest(int timeout)
 	{
-		_Logger.info("sendDiscoveryRequest has been called!");
-		return false;
+		try {
+			if (this.clientConn == null) {
+				_Logger.warning("Client connection is not initialized.");
+				return false;
+			}
+
+			this.clientConn.setURI("/.well-known/core");
+
+			// TODO: implement your own Discovery-specific response handler if you'd like, using the parsing logic from Option 2
+			GenericCoapResponseHandler responseHandler = new GenericCoapResponseHandler(this.dataMsgListener);
+			this.clientConn.get(responseHandler);
+
+			return true;
+		} catch (Exception e) {
+			_Logger.log(Level.WARNING, "Failed to send discovery request", e);
+			return false;
+		}
 	}
 
 	@Override
