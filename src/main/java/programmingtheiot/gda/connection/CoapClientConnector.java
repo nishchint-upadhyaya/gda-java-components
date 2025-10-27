@@ -17,8 +17,10 @@ import java.util.logging.Logger;
 import java.io.IOException;
 
 import org.eclipse.californium.core.CoapClient;
+import org.eclipse.californium.core.CoapHandler;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.WebLink;
+import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.elements.exception.ConnectorException;
 
 import programmingtheiot.common.ConfigConst;
@@ -132,29 +134,18 @@ public class CoapClientConnector implements IRequestResponseClient
 		}
 
 		this.clientConn.setURI(this.serverAddr + "/" + resource.getResourceName());
-		try {
-			response = this.clientConn.get();
-		} catch (ConnectorException | IOException e) {
-			_Logger.warning("Failed to execute GET request: " + e.getMessage());
-			return false;
-		}
 
-		if (response != null) {
-			// TODO: implement your logic here
-			
-			_Logger.info("Handling GET. Response: " + response.isSuccess() + " - " + response.getOptions() + " - " +
-				response.getCode() + " - " + response.getResponseText());
-			
-			if (this.dataMsgListener != null) {
-				// TODO: implement this
-			}
-			
-			return true;
-		} else {
-			_Logger.warning("Handling GET. No response received.");
-		}
+		// TODO: This is NOT a performance-savvy way to use a response handler, as it will require
+		// creating a new response handler with every call to this method. This is AN EXAMPLE ONLY.
+		// A better solution would involve creation of a resource and / or request type-specific
+		// response handler at construction time and storing it in a class-scoped variable for
+		// re-use in this call.
+		CoapHandler responseHandler = new GenericCoapResponseHandler(this.dataMsgListener);
+		this.clientConn.get(responseHandler);
 
-		return false;
+		// TODO: you may want to implement a unique, GET and resource-specific CoapHandler modeled after GenericCoapResponseHandler.
+
+		return true;
 	}
 
 	@Override
@@ -167,8 +158,27 @@ public class CoapClientConnector implements IRequestResponseClient
 	@Override
 	public boolean sendPutRequest(ResourceNameEnum resource, String name, boolean enableCON, String payload, int timeout)
 	{
-		_Logger.info("sendPutRequest has been called!");
-		return false;
+		CoapResponse response = null;
+
+		if (enableCON) {
+			this.clientConn.useCONs();
+		} else {
+			this.clientConn.useNONs();
+		}
+
+		this.clientConn.setURI(this.serverAddr + "/" + resource.getResourceName());
+
+		// TODO: This is NOT a performance-savvy way to use a response handler, as it will require
+		// creating a new response handler with every call to this method. This is AN EXAMPLE ONLY.
+		// A better solution would involve creation of a resource and / or request type-specific
+		// response handler at construction time and storing it in a class-scoped variable for
+		// re-use in this call.
+		CoapHandler responseHandler = new GenericCoapResponseHandler(this.dataMsgListener);
+		this.clientConn.put(responseHandler, payload, MediaTypeRegistry.TEXT_PLAIN);
+
+		// TODO: you may want to implement a unique, PUT and resource-specific CoapHandler modeled after GenericCoapResponseHandler.
+
+		return true;
 	}
 
 	@Override
