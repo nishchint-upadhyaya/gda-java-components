@@ -14,9 +14,12 @@ package programmingtheiot.gda.connection;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.io.IOException;
 
 import org.eclipse.californium.core.CoapClient;
+import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.WebLink;
+import org.eclipse.californium.elements.exception.ConnectorException;
 
 import programmingtheiot.common.ConfigConst;
 import programmingtheiot.common.ConfigUtil;
@@ -120,7 +123,37 @@ public class CoapClientConnector implements IRequestResponseClient
 	@Override
 	public boolean sendGetRequest(ResourceNameEnum resource, String name, boolean enableCON, int timeout)
 	{
-		_Logger.info("sendGetRequest has been called!");
+		CoapResponse response = null;
+
+		if (enableCON) {
+			this.clientConn.useCONs();
+		} else {
+			this.clientConn.useNONs();
+		}
+
+		this.clientConn.setURI(this.serverAddr + "/" + resource.getResourceName());
+		try {
+			response = this.clientConn.get();
+		} catch (ConnectorException | IOException e) {
+			_Logger.warning("Failed to execute GET request: " + e.getMessage());
+			return false;
+		}
+
+		if (response != null) {
+			// TODO: implement your logic here
+			
+			_Logger.info("Handling GET. Response: " + response.isSuccess() + " - " + response.getOptions() + " - " +
+				response.getCode() + " - " + response.getResponseText());
+			
+			if (this.dataMsgListener != null) {
+				// TODO: implement this
+			}
+			
+			return true;
+		} else {
+			_Logger.warning("Handling GET. No response received.");
+		}
+
 		return false;
 	}
 
