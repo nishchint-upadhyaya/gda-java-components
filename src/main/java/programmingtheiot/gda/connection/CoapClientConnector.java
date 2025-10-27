@@ -15,17 +15,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.californium.core.CoapClient;
-import org.eclipse.californium.core.CoapResponse;
-import org.eclipse.californium.core.WebLink;
-import org.eclipse.californium.core.coap.CoAP.ResponseCode;
-import org.eclipse.californium.core.coap.MediaTypeRegistry;
 
 import programmingtheiot.common.ConfigConst;
 import programmingtheiot.common.ConfigUtil;
 import programmingtheiot.common.IDataMessageListener;
 import programmingtheiot.common.ResourceNameEnum;
-
-import programmingtheiot.data.DataUtil;
 
 /**
  * Shell representation of class for student implementation.
@@ -35,6 +29,13 @@ public class CoapClientConnector implements IRequestResponseClient
 {
 	// static
 	
+	private String     protocol;
+	private String     host;
+	private int        port;
+	private String     serverAddr;
+	private CoapClient clientConn;
+	private IDataMessageListener dataMsgListener;
+
 	private static final Logger _Logger =
 		Logger.getLogger(CoapClientConnector.class.getName());
 	
@@ -48,6 +49,7 @@ public class CoapClientConnector implements IRequestResponseClient
 	 * 
 	 * All config data will be loaded from the config file.
 	 */
+
 	public CoapClientConnector()
 	{
 	}
@@ -61,6 +63,23 @@ public class CoapClientConnector implements IRequestResponseClient
 	 */
 	public CoapClientConnector(String host, boolean isSecure, boolean enableConfirmedMsgs)
 	{
+		ConfigUtil config = ConfigUtil.getInstance();
+		this.host = config.getProperty(ConfigConst.COAP_GATEWAY_SERVICE, ConfigConst.HOST_KEY, ConfigConst.DEFAULT_HOST);
+
+		if (config.getBoolean(ConfigConst.COAP_GATEWAY_SERVICE, ConfigConst.ENABLE_CRYPT_KEY)) {
+			this.protocol = ConfigConst.DEFAULT_COAP_SECURE_PROTOCOL;
+			this.port     = config.getInteger(ConfigConst.COAP_GATEWAY_SERVICE, ConfigConst.SECURE_PORT_KEY, ConfigConst.DEFAULT_COAP_SECURE_PORT);
+		} else {
+			this.protocol = ConfigConst.DEFAULT_COAP_PROTOCOL;
+			this.port     = config.getInteger(ConfigConst.COAP_GATEWAY_SERVICE, ConfigConst.PORT_KEY, ConfigConst.DEFAULT_COAP_PORT);
+		}
+		// NOTE: URL does not have a protocol handler for "coap",
+		// so we need to construct the URL manually
+		this.serverAddr = this.protocol + "://" + this.host + ":" + this.port;
+
+		initClient();
+
+		_Logger.info("Using URL for server conn: " + this.serverAddr);
 	}
 	
 	
@@ -69,36 +88,47 @@ public class CoapClientConnector implements IRequestResponseClient
 	@Override
 	public boolean sendDiscoveryRequest(int timeout)
 	{
+		_Logger.info("sendDiscoveryRequest has been called!");
 		return false;
 	}
 
 	@Override
 	public boolean sendDeleteRequest(ResourceNameEnum resource, String name, boolean enableCON, int timeout)
 	{
+		_Logger.info("sendDeleteRequest has been called!");
 		return false;
 	}
 
 	@Override
 	public boolean sendGetRequest(ResourceNameEnum resource, String name, boolean enableCON, int timeout)
 	{
+		_Logger.info("sendGetRequest has been called!");
 		return false;
 	}
 
 	@Override
 	public boolean sendPostRequest(ResourceNameEnum resource, String name, boolean enableCON, String payload, int timeout)
 	{
+		_Logger.info("sendPostRequest has been called!");
 		return false;
 	}
 
 	@Override
 	public boolean sendPutRequest(ResourceNameEnum resource, String name, boolean enableCON, String payload, int timeout)
 	{
+		_Logger.info("sendPutRequest has been called!");
 		return false;
 	}
 
 	@Override
 	public boolean setDataMessageListener(IDataMessageListener listener)
 	{
+		if (listener != null)
+		{
+			this.dataMsgListener = listener;
+			return true;
+		}
+
 		return false;
 	}
 
@@ -125,4 +155,14 @@ public class CoapClientConnector implements IRequestResponseClient
 	
 	// private methods
 	
+	private void initClient()
+	{
+		try {
+			this.clientConn = new CoapClient(this.serverAddr);
+			
+			_Logger.info("Created client connection to server / resource: " + this.serverAddr);
+		} catch (Exception e) {
+			_Logger.log(Level.SEVERE, "Failed to connect to broker: " + (this.clientConn != null ? this.clientConn.getURI() : this.serverAddr), e);
+		}
+	}
 }
