@@ -118,8 +118,27 @@ public class CoapClientConnector implements IRequestResponseClient
 	@Override
 	public boolean sendDeleteRequest(ResourceNameEnum resource, String name, boolean enableCON, int timeout)
 	{
-		_Logger.info("sendDeleteRequest has been called!");
-		return false;
+		CoapResponse response = null;
+
+		if (enableCON) {
+			this.clientConn.useCONs();
+		} else {
+			this.clientConn.useNONs();
+		}
+
+		this.clientConn.setURI(this.serverAddr + "/" + resource.getResourceName());
+
+		// TODO: This is NOT a performance-savvy way to use a response handler, as it will require
+		// creating a new response handler with every call to this method. This is AN EXAMPLE ONLY.
+		// A better solution would involve creation of a resource and / or request type-specific
+		// response handler at construction time and storing it in a class-scoped variable for
+		// re-use in this call.
+		CoapHandler responseHandler = new GenericCoapResponseHandler(this.dataMsgListener);
+		this.clientConn.delete(responseHandler);
+
+		// TODO: you may want to implement a unique, DELETE and resource-specific CoapHandler modeled after GenericCoapResponseHandler.
+
+		return true;
 	}
 
 	@Override

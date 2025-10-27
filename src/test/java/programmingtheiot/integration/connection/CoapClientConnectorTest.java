@@ -132,7 +132,7 @@ public class CoapClientConnectorTest
 	/**
 	 * 
 	 */
-	@Test
+	// @Test
 	public void testPostRequestCon()
 	{
 		// TODO: issue request and validate response
@@ -150,7 +150,7 @@ public class CoapClientConnectorTest
 	/**
 	 * 
 	 */
-	@Test
+	// @Test
 	public void testPostRequestNon()
 	{
 		// TODO: issue request and validate response
@@ -204,7 +204,7 @@ public class CoapClientConnectorTest
 	/**
 	 * 
 	 */
-	// @Test
+	@Test
 	public void testDeleteRequestCon()
 	{
 		// TODO: issue request and validate response
@@ -215,7 +215,7 @@ public class CoapClientConnectorTest
 	/**
 	 * 
 	 */
-	// @Test
+	@Test
 	public void testDeleteRequestNon()
 	{
 		// TODO: issue request and validate response
