@@ -41,6 +41,7 @@ public class MqttClientPerformanceTest
 	private static final Logger _Logger =
 		Logger.getLogger(MqttClientPerformanceTest.class.getName());
 	
+	// NOTE: We'll use only 10,000 requests for MQTT
 	public static final int MAX_TEST_RUNS = 10000;
 	
 	// member var's
@@ -58,7 +59,6 @@ public class MqttClientPerformanceTest
 	@Before
 	public void setUp() throws Exception
 	{
-		ConfigUtil.getInstance();
 		this.mqttClient = new MqttClientConnector();
 	}
 	
@@ -86,7 +86,7 @@ public class MqttClientPerformanceTest
 		long endMillis = System.currentTimeMillis();
 		long elapsedMillis = endMillis - startMillis;
 		
-		_Logger.info("Connect and Disconnect [1]: " + elapsedMillis + " ms");
+		_Logger.info("Connect and Disconnect: " + elapsedMillis + " ms");
 	}
 	
 	/**
@@ -98,18 +98,12 @@ public class MqttClientPerformanceTest
 		execTestPublish(MAX_TEST_RUNS, 0);
 	}
 	
-	/**
-	 * Test method for {@link programmingtheiot.gda.connection.MqttClientConnector#publishMessage(programmingtheiot.common.ResourceNameEnum, java.lang.String, int)}.
-	 */
 	@Test
 	public void testPublishQoS1()
 	{
 		execTestPublish(MAX_TEST_RUNS, 1);
 	}
 	
-	/**
-	 * Test method for {@link programmingtheiot.gda.connection.MqttClientConnector#publishMessage(programmingtheiot.common.ResourceNameEnum, java.lang.String, int)}.
-	 */
 	@Test
 	public void testPublishQoS2()
 	{
@@ -129,11 +123,10 @@ public class MqttClientPerformanceTest
 		SensorData sensorData = new SensorData();
 		
 		String payload = DataUtil.getInstance().sensorDataToJson(sensorData);
-		int payloadLen = payload.length();
 		
 		long startMillis = System.currentTimeMillis();
 		
-		for (int sequenceNo = 1; sequenceNo <= maxTestRuns; sequenceNo++) {
+		for (int sequenceNo = 0; sequenceNo < maxTestRuns; sequenceNo++) {
 			this.mqttClient.publishMessage(ResourceNameEnum.CDA_MGMT_STATUS_CMD_RESOURCE, payload, qos);
 		}
 		
@@ -142,13 +135,7 @@ public class MqttClientPerformanceTest
 		
 		assertTrue(this.mqttClient.disconnectClient());
 		
-		String msg =
-			String.format(
-				"\\n\\tTesting Publish: QoS = %s | msgs = %s | payload size = %s | start = %s | end = %s | elapsed = %s",
-				qos, maxTestRuns, payloadLen,
-				(float) startMillis / 1000, (float) endMillis / 1000, (float) elapsedMillis / 1000);
-		
-		_Logger.info(msg);
+		_Logger.info("Publish message - QoS " + qos + " [" + maxTestRuns + "]: " + elapsedMillis + " ms");
 	}
 	
 }
