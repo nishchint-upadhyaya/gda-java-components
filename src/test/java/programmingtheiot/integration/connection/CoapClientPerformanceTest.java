@@ -78,9 +78,6 @@ public class CoapClientPerformanceTest
 	public void setUp() throws Exception
 	{
 		this.coapClient = new CoapClientConnector();
-		this.dataMsgListener = new DefaultDataMessageListener();
-		
-		this.coapClient.setDataMessageListener(this.dataMsgListener);
 	}
 	
 	/**
@@ -99,19 +96,12 @@ public class CoapClientPerformanceTest
 	@Test
 	public void testPostRequestCon()
 	{
-		_Logger.info("Testing POST - CON");
-		
 		execTestPost(MAX_TEST_RUNS, true);
 	}
 	
-	/**
-	 * 
-	 */
 	@Test
 	public void testPostRequestNon()
 	{
-		_Logger.info("Testing POST - NON");
-		
 		execTestPost(MAX_TEST_RUNS, false);
 	}
 	
