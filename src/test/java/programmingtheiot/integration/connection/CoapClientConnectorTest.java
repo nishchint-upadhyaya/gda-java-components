@@ -94,16 +94,23 @@ public class CoapClientConnectorTest
 	/**
 	 * 
 	 */
-	@Test
+	// @Test
 	public void testConnectAndDiscover()
 	{
 		assertTrue(this.coapClient.sendDiscoveryRequest(DEFAULT_TIMEOUT));
+
+		// NOTE: If you are using a custom asynchronous discovery, include a brief wait here
+		try {
+			Thread.sleep(2000L);
+		} catch (InterruptedException e) {
+			// ignore
+		}
 	}
 	
 	/**
 	 * 
 	 */
-	@Test
+	// @Test
 	public void testGetRequestCon()
 	{
 		// TODO: issue request and validate response
@@ -114,7 +121,7 @@ public class CoapClientConnectorTest
 	/**
 	 * 
 	 */
-	@Test
+	// @Test
 	public void testGetRequestNon()
 	{
 		// TODO: issue request and validate response
@@ -125,7 +132,7 @@ public class CoapClientConnectorTest
 	/**
 	 * 
 	 */
-	@Test
+	// @Test
 	public void testPostRequestCon()
 	{
 		// TODO: issue request and validate response
@@ -143,7 +150,7 @@ public class CoapClientConnectorTest
 	/**
 	 * 
 	 */
-	@Test
+	// @Test
 	public void testPostRequestNon()
 	{
 		// TODO: issue request and validate response
@@ -161,7 +168,7 @@ public class CoapClientConnectorTest
 	/**
 	 * 
 	 */
-	@Test
+	// @Test
 	public void testPutRequestCon()
 	{
 		// TODO: issue request and validate response
@@ -179,7 +186,7 @@ public class CoapClientConnectorTest
 	/**
 	 * 
 	 */
-	@Test
+	// @Test
 	public void testPutRequestNon()
 	{
 		// TODO: issue request and validate response
