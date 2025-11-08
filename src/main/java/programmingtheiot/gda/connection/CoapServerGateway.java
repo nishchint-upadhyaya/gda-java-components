@@ -227,12 +227,6 @@ public class CoapServerGateway
 		
 		updateSystemPerformanceResourceHandler.setDataMessageListener(this.dataMsgListener);
 		
-		CoapResource top =
-			    new CoapResource("PIOT").add(
-			        new CoapResource("ConstrainedDevice").add(
-			            new UpdateSystemPerformanceResourceHandler("SystemPerfMsg")));
-		this.coapServer.add(top);
-		
 		addResource(
 			ResourceNameEnum.CDA_SYSTEM_PERF_MSG_RESOURCE, null, updateSystemPerformanceResourceHandler);
 	}

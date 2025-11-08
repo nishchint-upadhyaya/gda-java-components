@@ -89,13 +89,13 @@ public class GenericCoapResponseHandler implements CoapHandler
 		}
 	}
 
-
 	/**
 	 *
 	 */
 	@Override
 	public void onError()
 	{
+		// TODO: handle this
 		_Logger.warning("Error processing CoAP response. Ignoring.");
 	}
 	
