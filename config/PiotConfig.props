@@ -91,3 +91,18 @@ host = redis-12836.c246.us-east-1-4.ec2.redns.redis-cloud.com
 port = 12836
 password = li97J8dPv0mnKiBRdr5N4e3Bzn2O8NM0
 enableCrypt = False
+
+# if true, GDA will process humidity change events from CDA
+handleHumidityChangeOnDevice = True
+
+# min seconds between readings before triggering actuation event
+humidityMaxTimePastThreshold = 300
+
+# ideal average humidity level (% relative)
+nominalHumiditySetting       = 40.0
+
+# min value before turning on humidifier (% relative)
+triggerHumidifierFloor       = 30.0
+
+# max value before turning off humidifier (% relative)
+triggerHumidifierCeiling     = 50.0
