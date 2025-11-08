@@ -82,7 +82,7 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 		super();
 		
 		initClientParameters(ConfigConst.MQTT_GATEWAY_SERVICE);
-		
+
 		// super();
 		
 		// ConfigUtil configUtil = ConfigUtil.getInstance();
@@ -150,20 +150,29 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 	{
 		try {
 			if (this.mqttClient == null) {
+				// NOTE: MQTT client updated to use async client vs sync client
 				this.mqttClient = new MqttClient(this.brokerAddr, this.clientID, this.persistence);
+	//			this.mqttClient = new MqttClient(this.brokerAddr, this.clientID, this.persistence);
+				
 				this.mqttClient.setCallback(this);
 			}
 			
 			if (! this.mqttClient.isConnected()) {
 				_Logger.info("MQTT client connecting to broker: " + this.brokerAddr);
+				
 				this.mqttClient.connect(this.connOpts);
+				
+				// NOTE: When using the async client, returning 'true' here doesn't mean
+				// the client is actually connected - yet. Use the connectComplete() callback
+				// to determine result of connectClient().
 				return true;
 			} else {
 				_Logger.warning("MQTT client already connected to broker: " + this.brokerAddr);
 			}
 		} catch (MqttException e) {
 			// TODO: handle this exception
-			_Logger.log(Level.SEVERE, "Failed to connect MQTT client to broker.", e);
+			
+			_Logger.log(Level.SEVERE, "Failed to connect MQTT client to broker: " + this.brokerAddr, e);
 		}
 		
 		return false;
@@ -288,9 +297,19 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 	
 	// callbacks
 	
+	@Override
 	public void connectComplete(boolean reconnect, String serverURI)
 	{
 		_Logger.info("MQTT connection successful (is reconnect = " + reconnect + "). Broker: " + serverURI);
+		
+		int qos = 1;
+		
+		this.subscribeToTopic(ResourceNameEnum.CDA_ACTUATOR_RESPONSE_RESOURCE, qos);
+		this.subscribeToTopic(ResourceNameEnum.CDA_SENSOR_MSG_RESOURCE, qos);
+		this.subscribeToTopic(ResourceNameEnum.CDA_SYSTEM_PERF_MSG_RESOURCE, qos);
+		
+		// IMPORTANT NOTE: You'll have to parse each message type in the callback method
+		// `public void messageArrived(String topic, MqttMessage msg) throws Exception`
 	}
 
 	public void connectionLost(Throwable t)
