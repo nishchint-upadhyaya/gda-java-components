@@ -94,7 +94,7 @@ public class CoapClientConnectorTest
 	/**
 	 * 
 	 */
-	//@Test
+	@Test
 	public void testConnectAndDiscover()
 	{
 		assertTrue(this.coapClient.sendDiscoveryRequest(DEFAULT_TIMEOUT));
@@ -103,7 +103,7 @@ public class CoapClientConnectorTest
 	/**
 	 * 
 	 */
-	//@Test
+	@Test
 	public void testGetRequestCon()
 	{
 		// TODO: issue request and validate response
@@ -114,7 +114,7 @@ public class CoapClientConnectorTest
 	/**
 	 * 
 	 */
-	//@Test
+	@Test
 	public void testGetRequestNon()
 	{
 		// TODO: issue request and validate response
@@ -143,7 +143,7 @@ public class CoapClientConnectorTest
 	/**
 	 * 
 	 */
-	@Test
+	// @Test
 	public void testPostRequestNon()
 	{
 		// TODO: issue request and validate response

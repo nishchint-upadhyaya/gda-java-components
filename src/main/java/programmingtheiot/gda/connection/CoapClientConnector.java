@@ -120,7 +120,9 @@ public class CoapClientConnector implements IRequestResponseClient
 		        _Logger.info(" --> URI: " + wl.getURI() + ". Attributes: " + wl.getAttributes());
 		    }
 		}
+		
 		return true;
+		
 	}
 
 	@Override
