@@ -73,7 +73,7 @@ public class MqttClientConnectorTest
 	/**
 	 * Test method for {@link programmingtheiot.gda.connection.MqttClientConnector#connectClient()}.
 	 */
-	// @Test
+	//@Test
 	public void testConnectAndDisconnect()
 	{
 		int delay = ConfigUtil.getInstance().getInteger(ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.KEEP_ALIVE_KEY, ConfigConst.DEFAULT_KEEP_ALIVE);
@@ -117,7 +117,7 @@ public class MqttClientConnectorTest
 		assertTrue(this.mqttClient.publishMessage(ResourceNameEnum.GDA_MGMT_STATUS_MSG_RESOURCE, "TEST: This is the GDA message payload 3.", qos));
 		
 		try {
-			Thread.sleep(25000);
+			Thread.sleep(5000);
 		} catch (Exception e) {
 			// ignore
 		}

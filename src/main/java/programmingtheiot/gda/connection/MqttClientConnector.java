@@ -38,9 +38,6 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 {
 	// static
 	
-	private static final Logger _Logger =
-		Logger.getLogger(MqttClientConnector.class.getName());
-	
 	private boolean useAsyncClient = false;
 
 	private MqttClient           mqttClient = null;
@@ -55,6 +52,10 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 	private int     port = ConfigConst.DEFAULT_MQTT_PORT;
 	private int     brokerKeepAlive = ConfigConst.DEFAULT_KEEP_ALIVE;
 	
+	
+	private static final Logger _Logger =
+		Logger.getLogger(MqttClientConnector.class.getName());
+	
 	// params
 	
 	
@@ -66,21 +67,22 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 	 */
 	public MqttClientConnector()
 	{
+		
 		super();
-
+		
 		ConfigUtil configUtil = ConfigUtil.getInstance();
-	
+		
 		this.host =
-			configUtil.getProperty(
-				ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.HOST_KEY, ConfigConst.DEFAULT_HOST);
+		    configUtil.getProperty(
+		        ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.HOST_KEY, ConfigConst.DEFAULT_HOST);
 		
 		this.port =
-			configUtil.getInteger(
-				ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.PORT_KEY, ConfigConst.DEFAULT_MQTT_PORT);
+		    configUtil.getInteger(
+		        ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.PORT_KEY, ConfigConst.DEFAULT_MQTT_PORT);
 		
 		this.brokerKeepAlive =
-			configUtil.getInteger(
-				ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.KEEP_ALIVE_KEY, ConfigConst.DEFAULT_KEEP_ALIVE);
+		    configUtil.getInteger(
+		        ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.KEEP_ALIVE_KEY, ConfigConst.DEFAULT_KEEP_ALIVE);
 		
 		// This next config file boolean property is optional; it can be
 		// set within the [Mqtt.GatewayService] and [Cloud.GatewayService]
@@ -98,8 +100,8 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 		// you'll need to add the following line of code to ConfigConst.java:
 		// public static final String USE_ASYNC_CLIENT_KEY = "useAsyncClient";
 		this.useAsyncClient =
-			configUtil.getBoolean(
-				ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.USE_ASYNC_CLIENT_KEY);
+		    configUtil.getBoolean(
+		        ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.USE_ASYNC_CLIENT_KEY);
 		
 		// NOTE: paho Java client requires a client ID - for now, you
 		// can use the generated client ID; for later exercises, you
@@ -122,6 +124,7 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 		// NOTE: URL does not have a protocol handler for "tcp",
 		// so we need to construct the URL manually
 		this.brokerAddr = this.protocol + "://" + this.host + ":" + this.port;
+		
 	}
 	
 	
@@ -264,19 +267,17 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 			this.dataMsgListener = listener;
 			return true;
 		}
-		_Logger.info("setDataMessageListener() called with listener: " + listener);
+		
 		return false;
 	}
 	
 	// callbacks
 	
-	@Override
 	public void connectComplete(boolean reconnect, String serverURI)
 	{
 		_Logger.info("MQTT connection successful (is reconnect = " + reconnect + "). Broker: " + serverURI);
 	}
 
-	@Override
 	public void connectionLost(Throwable t)
 	{
 		_Logger.log(Level.WARNING, "Lost connection to MQTT broker: " + this.brokerAddr, t);
@@ -290,7 +291,7 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 	}
 	
 	@Override
-	public void messageArrived(String topic, MqttMessage msg) // throws Exception
+	public void messageArrived(String topic, MqttMessage message)
 	{
 		// TODO: Logging level may need to be adjusted to reduce output in log file / console
 		_Logger.info("MQTT message arrived on topic: '" + topic + "'");

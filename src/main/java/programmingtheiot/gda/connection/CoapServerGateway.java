@@ -32,6 +32,7 @@ import programmingtheiot.gda.connection.handlers.GetActuatorCommandResourceHandl
 import programmingtheiot.gda.connection.handlers.UpdateSystemPerformanceResourceHandler;
 import programmingtheiot.gda.connection.handlers.UpdateTelemetryResourceHandler;
 
+
 /**
  * Shell representation of class for student implementation.
  * 
@@ -45,6 +46,7 @@ public class CoapServerGateway
 		UdpConfig.register();
 	}
 
+	
 	private static final Logger _Logger =
 		Logger.getLogger(CoapServerGateway.class.getName());
 	
@@ -87,12 +89,13 @@ public class CoapServerGateway
 			// break out the hierarchy of names and build the resource
 			// handler generation(s) as needed, checking if any parent already
 			// exists - and if so, add to the existing resource
-
+			
 			CoapResource top =
-				new CoapResource("PIOT").add(
-					new CoapResource("ConstrainedDevice").add(
-						new UpdateSystemPerformanceResourceHandler("SystemPerfMsg")));
-
+				    new CoapResource("PIOT").add(
+				        new CoapResource("ConstrainedDevice").add(
+				            new UpdateSystemPerformanceResourceHandler("SystemPerfMsg")));
+			
+			//createAndAddResourceChain(resourceType, resource);
 			createAndAddResourceChain(resourceType, top);
 		}
 	}
@@ -151,9 +154,42 @@ public class CoapServerGateway
 	
 	// private methods
 	
-	private Resource createResourceChain(ResourceNameEnum resource)
+	private void createAndAddResourceChain(ResourceNameEnum resourceType, Resource resource)
 	{
-		return null;
+		_Logger.info("Adding server resource handler chain: " + resourceType.getResourceName());
+		
+		List<String> resourceNames = resourceType.getResourceNameChain();
+		Queue<String> queue = new ArrayBlockingQueue<>(resourceNames.size());
+		
+		queue.addAll(resourceNames);
+		
+		// check if we have a parent resource
+		Resource parentResource = this.coapServer.getRoot();
+		
+		// if no parent resource, add it in now (should be named "PIOT")
+		if (parentResource == null) {
+			parentResource = new CoapResource(queue.poll());
+			this.coapServer.add(parentResource);
+		}
+		
+		while (! queue.isEmpty()) {
+			// get the next resource name
+			String   resourceName = queue.poll();
+			Resource nextResource = parentResource.getChild(resourceName);
+			
+			if (nextResource == null) {
+				if (queue.isEmpty()) {
+					nextResource = resource;
+					nextResource.setName(resourceName);
+				} else {
+					nextResource = new CoapResource(resourceName);
+				}
+				
+				parentResource.add(nextResource);
+			}
+			
+			parentResource = nextResource;
+		}
 	}
 	
 	private void initServer(ResourceNameEnum ...resources)
@@ -199,43 +235,5 @@ public class CoapServerGateway
 		
 		addResource(
 			ResourceNameEnum.CDA_SYSTEM_PERF_MSG_RESOURCE, null, updateSystemPerformanceResourceHandler);
-	}
-
-	private void createAndAddResourceChain(ResourceNameEnum resourceType, Resource resource)
-	{
-		_Logger.info("Adding server resource handler chain: " + resourceType.getResourceName());
-		
-		List<String> resourceNames = resourceType.getResourceNameChain();
-		Queue<String> queue = new ArrayBlockingQueue<>(resourceNames.size());
-		
-		queue.addAll(resourceNames);
-		
-		// check if we have a parent resource
-		Resource parentResource = this.coapServer.getRoot();
-		
-		// if no parent resource, add it in now (should be named "PIOT")
-		if (parentResource == null) {
-			parentResource = new CoapResource(queue.poll());
-			this.coapServer.add(parentResource);
-		}
-		
-		while (! queue.isEmpty()) {
-			// get the next resource name
-			String   resourceName = queue.poll();
-			Resource nextResource = parentResource.getChild(resourceName);
-			
-			if (nextResource == null) {
-				if (queue.isEmpty()) {
-					nextResource = resource;
-					nextResource.setName(resourceName);
-				} else {
-					nextResource = new CoapResource(resourceName);
-				}
-				
-				parentResource.add(nextResource);
-			}
-			
-			parentResource = nextResource;
-		}
 	}
 }

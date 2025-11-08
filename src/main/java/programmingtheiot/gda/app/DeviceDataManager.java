@@ -24,9 +24,8 @@ import programmingtheiot.data.ActuatorData;
 import programmingtheiot.data.DataUtil;
 import programmingtheiot.data.SensorData;
 import programmingtheiot.data.SystemPerformanceData;
-import programmingtheiot.data.SystemStateData;
+
 import programmingtheiot.gda.connection.CloudClientConnector;
-import programmingtheiot.gda.connection.CoapClientConnector;
 import programmingtheiot.gda.connection.CoapServerGateway;
 import programmingtheiot.gda.connection.IPersistenceClient;
 import programmingtheiot.gda.connection.IPubSubClient;
@@ -51,8 +50,6 @@ public class DeviceDataManager implements IDataMessageListener
 	
 	private boolean enableMqttClient = true;
 	private boolean enableCoapServer = false;
-	private boolean enableCoapClient = false;
-	private CoapClientConnector coapClient = null;
 	private boolean enableCloudClient = false;
 	private boolean enableSmtpClient = false;
 	private boolean enablePersistenceClient = false;
@@ -65,9 +62,11 @@ public class DeviceDataManager implements IDataMessageListener
 	private IRequestResponseClient smtpClient = null;
 	private CoapServerGateway coapServer = null;
 	private SystemPerformanceManager sysPerfMgr = null;
-
+	
 	private RedisPersistenceAdapter redisClient;
 	
+	
+
 	// constructors
 	
 	public DeviceDataManager()
@@ -75,7 +74,7 @@ public class DeviceDataManager implements IDataMessageListener
 		super();
 		
 		ConfigUtil configUtil = ConfigUtil.getInstance();
-	
+		
 		this.enableMqttClient =
 			configUtil.getBoolean(
 				ConfigConst.GATEWAY_DEVICE, ConfigConst.ENABLE_MQTT_CLIENT_KEY);
@@ -83,10 +82,6 @@ public class DeviceDataManager implements IDataMessageListener
 		this.enableCoapServer =
 			configUtil.getBoolean(
 				ConfigConst.GATEWAY_DEVICE, ConfigConst.ENABLE_COAP_SERVER_KEY);
-		
-		this.enableCoapClient = 
-			configUtil.getBoolean(
-				ConfigConst.GATEWAY_DEVICE, ConfigConst.ENABLE_COAP_CLIENT_KEY);
 		
 		this.enableCloudClient =
 			configUtil.getBoolean(
@@ -97,8 +92,6 @@ public class DeviceDataManager implements IDataMessageListener
 				ConfigConst.GATEWAY_DEVICE, ConfigConst.ENABLE_PERSISTENCE_CLIENT_KEY);
 		
 		initManager();
-
-		// initConnections();
 	}
 	
 	public DeviceDataManager(
@@ -110,12 +103,26 @@ public class DeviceDataManager implements IDataMessageListener
 	{
 		super();
 		
-		// initConnections();
 		initManager();
 	}
 	
-	
 	// public methods
+	
+	@Override
+	public boolean handleActuatorCommandRequest(ResourceNameEnum resourceName, ActuatorData data)
+	{
+		return false;
+	}
+	
+	public void setActuatorDataListener(String name, IActuatorDataListener listener)
+	{
+		if (listener != null) {
+			// for now, just ignore 'name' - if you need more than one listener,
+			// you can use 'name' to create a map of listener instances
+			this.actuatorDataListener = listener;
+		}
+	}
+	
 	
 	@Override
 	public boolean handleActuatorCommandResponse(ResourceNameEnum resourceName, ActuatorData data)
@@ -124,7 +131,7 @@ public class DeviceDataManager implements IDataMessageListener
 			_Logger.info("Handling actuator response: " + data.getName());
 			
 			// this next call is optional for now
-			this.handleIncomingDataAnalysis(resourceName, data);
+			//this.handleIncomingDataAnalysis(resourceName, data);
 			
 			if (data.hasError()) {
 				_Logger.warning("Error flag set for ActuatorData instance.");
@@ -133,17 +140,11 @@ public class DeviceDataManager implements IDataMessageListener
 			if (this.redisClient.connectClient()) {
 			    this.redisClient.storeData(resourceName.getDeviceName(), 0, data);
 			}
-
+			
 			return true;
 		} else {
 			return false;
 		}
-	}
-
-	@Override
-	public boolean handleActuatorCommandRequest(ResourceNameEnum resourceName, ActuatorData data)
-	{
-		return false;
 	}
 
 	@Override
@@ -167,10 +168,6 @@ public class DeviceDataManager implements IDataMessageListener
 			if (data.hasError()) {
 				_Logger.warning("Error flag set for SensorData instance.");
 			}
-
-			if (this.redisClient.connectClient()) {
-			    this.redisClient.storeData(resourceName.getDeviceName(), 0, data);
-			}
 			
 			return true;
 		} else {
@@ -187,23 +184,10 @@ public class DeviceDataManager implements IDataMessageListener
 			if (data.hasError()) {
 				_Logger.warning("Error flag set for SystemPerformanceData instance.");
 			}
-
-			if (this.redisClient.connectClient()) {
-			    this.redisClient.storeData(resourceName.getDeviceName(), 0, data);
-			}
 			
 			return true;
 		} else {
 			return false;
-		}
-	}
-	
-	public void setActuatorDataListener(String name, IActuatorDataListener listener)
-	{
-		if (listener != null) {
-			// for now, just ignore 'name' - if you need more than one listener,
-			// you can use 'name' to create a map of listener instances
-			this.actuatorDataListener = listener;
 		}
 	}
 	
@@ -233,14 +217,15 @@ public class DeviceDataManager implements IDataMessageListener
 				// TODO: take appropriate action
 			}
 		}
+		
 		if (this.sysPerfMgr != null) {
 			this.sysPerfMgr.startManager();
 		}
-
+		
 		if (this.redisClient != null) {
 			this.redisClient.connectClient();
 		}
-
+		
 		if (this.enableCoapServer && this.coapServer != null) {
 			if (this.coapServer.startServer()) {
 				_Logger.info("CoAP server started.");
@@ -248,6 +233,7 @@ public class DeviceDataManager implements IDataMessageListener
 				_Logger.severe("Failed to start CoAP server. Check log file for details.");
 			}
 		}
+		
 	}
 	
 	public void stopManager()
@@ -255,7 +241,11 @@ public class DeviceDataManager implements IDataMessageListener
 		if (this.sysPerfMgr != null) {
 			this.sysPerfMgr.stopManager();
 		}
-
+		
+		if (this.redisClient != null) {
+			this.redisClient.disconnectClient();
+		}
+		
 		if (this.mqttClient != null) {
 			// add necessary un-subscribes
 			
@@ -279,11 +269,7 @@ public class DeviceDataManager implements IDataMessageListener
 				// TODO: take appropriate action
 			}
 		}
-
-		if (this.redisClient != null) {
-			this.redisClient.disconnectClient();
-		}
-
+		
 		if (this.enableCoapServer && this.coapServer != null) {
 			if (this.coapServer.stopServer()) {
 				_Logger.info("CoAP server stopped.");
@@ -301,10 +287,13 @@ public class DeviceDataManager implements IDataMessageListener
 	 * instances that will be used in the {@link #startManager() and #stopManager()) methods.
 	 * 
 	 */
+	
+	// THIS LOOKS TO BE OLD NAME!!!
+	// THE LAB05 INSTRUCTIONS CALL THIS initManager()
 	private void initConnections()
 	{
 	}
-
+	
 	private void initManager()
 	{
 		ConfigUtil configUtil = ConfigUtil.getInstance();
@@ -316,7 +305,7 @@ public class DeviceDataManager implements IDataMessageListener
 			this.sysPerfMgr = new SystemPerformanceManager();
 			this.sysPerfMgr.setDataMessageListener(this);
 		}
-
+		
 		if (this.redisClient == null) {
 			this.redisClient = new RedisPersistenceAdapter();
 		}
@@ -329,6 +318,10 @@ public class DeviceDataManager implements IDataMessageListener
 			this.mqttClient.setDataMessageListener(this);
 		}
 		
+		if (this.enableCoapServer) {
+			// TODO: implement this in Lab Module 8
+		}
+		
 		if (this.enableCloudClient) {
 			// TODO: implement this in Lab Module 10
 		}
@@ -336,23 +329,16 @@ public class DeviceDataManager implements IDataMessageListener
 		if (this.enablePersistenceClient) {
 			// TODO: implement this as an optional exercise in Lab Module 5
 		}
-
+		
 		if (this.enableCoapServer) {
 			this.coapServer = new CoapServerGateway(this);
 		}
-
-		if (this.enableCoapClient) {
-			this.coapClient = new CoapClientConnector();
-			this.coapClient.setDataMessageListener(this);
-
-			_Logger.info("CoAP client connector enabled and listener set.");
-		}
 	}
-
-	private void handleIncomingDataAnalysis(ResourceNameEnum resourceName, ActuatorData data)
+	
+	private void handleIncomingDataAnalysis(ResourceNameEnum resource, ActuatorData data)
 	{
 		_Logger.info("Analyzing incoming actuator data: " + data.getName());
-	
+		
 		if (data.isResponseFlagEnabled()) {
 			// TODO: implement this
 		} else {
@@ -362,8 +348,5 @@ public class DeviceDataManager implements IDataMessageListener
 		}
 	}
 
-	private void handleUpstreamTransmission(ResourceNameEnum resourceName, String jsonData, int qos)
-	{
-		_Logger.info("SystemStateData FINE!");
-	}
+	
 }
