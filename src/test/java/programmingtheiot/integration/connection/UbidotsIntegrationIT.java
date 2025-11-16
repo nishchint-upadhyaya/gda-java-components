@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import org.junit.Test;
 
+// JUnit 5 is optional; these annotations will be ignored if not present.
 import static org.junit.Assert.*;
 
 /**
@@ -29,11 +30,12 @@ import static org.junit.Assert.*;
 public class UbidotsIntegrationIT {
 
     // ===== Student-configurable via environment variables =====
-    private static final String TOKEN  = envOr("UBI_TOKEN", "BBUS-3rgILmKp22SMpBANAHNNjDuVGj6QOU");            // required for HTTP
+    private static final String TOKEN  = envOr("UBI_TOKEN", "BBUS-tEah5Lv9cCQel7UL4MZGlDLCDUKABz");            // required for HTTP
     private static final String DEVICE = envOr("UBI_DEVICE", "machine-a");    // default device label
     private static final String URL    = "https://industrial.api.ubidots.com/api/v1.6/devices/" + DEVICE;
 
-    private static final boolean RUN_MQTT   = "1".equals(envOr("RUN_MQTT", "1"));
+    //private static final boolean RUN_MQTT   = "1".equals(envOr("RUN_MQTT", "0"));
+    private static final boolean RUN_MQTT   = true;
     private static final String  MQTT_BROKER= envOr("MQTT_BROKER", "ssl://industrial.api.ubidots.com:8883");
 
     // ===== Standalone runner =====
@@ -64,8 +66,6 @@ public class UbidotsIntegrationIT {
     // ===== JUnit-compatible tests (optional) =====
     @Test
     public void httpPostShouldSucceed() throws Exception {
-        
-        
         assertNotNull(TOKEN, "UBI_TOKEN must be set for HTTP test");
         assertTrue(httpPostSmokeTest());
     }
@@ -85,7 +85,7 @@ public class UbidotsIntegrationIT {
 
     // ===== Implementation: HTTP (always available) =====
     private static boolean httpPostSmokeTest() throws Exception {
-        String payload = "{\"temperature\": " + (20 + (int)(Math.random()*10)) + ", \"humidity\": 42.0}";
+        String payload = "{\"temperature\": " + (20 + (int)(Math.random()*15)) + ", \"humidity\": 42.0}";
         System.out.println("POST " + URL);
         System.out.println("Payload: " + payload);
 

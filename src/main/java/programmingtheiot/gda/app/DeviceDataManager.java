@@ -30,7 +30,6 @@ import programmingtheiot.data.SystemPerformanceData;
 
 import programmingtheiot.gda.connection.CloudClientConnector;
 import programmingtheiot.gda.connection.CoapServerGateway;
-import programmingtheiot.gda.connection.ICloudClient;
 import programmingtheiot.gda.connection.IPersistenceClient;
 import programmingtheiot.gda.connection.IPubSubClient;
 import programmingtheiot.gda.connection.IRequestResponseClient;
@@ -61,8 +60,7 @@ public class DeviceDataManager implements IDataMessageListener
 	
 	private IActuatorDataListener actuatorDataListener = null;
 	private IPubSubClient mqttClient = null;
-	// private IPubSubClient cloudClient = null;
-	private ICloudClient cloudClient = null;
+	private IPubSubClient cloudClient = null;
 	private IPersistenceClient persistenceClient = null;
 	private IRequestResponseClient smtpClient = null;
 	private CoapServerGateway coapServer = null;
@@ -135,7 +133,6 @@ public class DeviceDataManager implements IDataMessageListener
 		if (this.humidityMaxTimePastThreshold < 10 || this.humidityMaxTimePastThreshold > 7200) {
 			this.humidityMaxTimePastThreshold = 300;
 		}	
-
 		initManager();
 	}
 	
@@ -297,9 +294,10 @@ public class DeviceDataManager implements IDataMessageListener
 		
 		if (this.cloudClient != null) {
 			// TODO: handle any failures
-			if (this.cloudClient.sendEdgeDataToCloud(resourceName, data)) {
-				_Logger.fine("Sent JSON data upstream to CSP.");
-			}
+			
+			// if (this.cloudClient.sendEdgeDataToCloud(resourceName, data)) {
+			// 	_Logger.fine("Sent JSON data upstream to CSP.");
+			// }
 		}
 	}
 
@@ -445,7 +443,6 @@ public class DeviceDataManager implements IDataMessageListener
 		return odt;
 	}
 
-
 	@Override
 	public boolean handleSystemPerformanceMessage(ResourceNameEnum resourceName, SystemPerformanceData data)
 	{
@@ -463,7 +460,7 @@ public class DeviceDataManager implements IDataMessageListener
 			
 			// NOTE: You may want to also analyze the SystemPerformanceData here
 			
-			this.handleUpstreamTransmission(resourceName, jsonData, qos);
+			//this.handleUpstreamTransmission(resourceName, jsonData, qos);
 			
 			return true;
 		} else {
@@ -477,18 +474,20 @@ public class DeviceDataManager implements IDataMessageListener
 			if (this.mqttClient.connectClient()) {
 				_Logger.info("Successfully connected MQTT client to broker.");
 				
+				// add necessary subscriptions
+				
 				// TODO: read this from the configuration file
-				//int qos = ConfigConst.DEFAULT_QOS;
+				int qos = ConfigConst.DEFAULT_QOS;
 				
 				// TODO: check the return value for each and take appropriate action
 				
 				// IMPORTANT NOTE: The 'subscribeToTopic()' method calls shown
 				// below will be moved to MqttClientConnector.connectComplete()
 				// in Lab Module 10. For now, they can remain here.
-				//this.mqttClient.subscribeToTopic(ResourceNameEnum.GDA_MGMT_STATUS_MSG_RESOURCE, qos);
-				//this.mqttClient.subscribeToTopic(ResourceNameEnum.CDA_ACTUATOR_RESPONSE_RESOURCE, qos);
-				//this.mqttClient.subscribeToTopic(ResourceNameEnum.CDA_SENSOR_MSG_RESOURCE, qos);
-				//this.mqttClient.subscribeToTopic(ResourceNameEnum.CDA_SYSTEM_PERF_MSG_RESOURCE, qos);
+				this.mqttClient.subscribeToTopic(ResourceNameEnum.GDA_MGMT_STATUS_MSG_RESOURCE, qos);
+				this.mqttClient.subscribeToTopic(ResourceNameEnum.CDA_ACTUATOR_RESPONSE_RESOURCE, qos);
+				this.mqttClient.subscribeToTopic(ResourceNameEnum.CDA_SENSOR_MSG_RESOURCE, qos);
+				this.mqttClient.subscribeToTopic(ResourceNameEnum.CDA_SYSTEM_PERF_MSG_RESOURCE, qos);
 			} else {
 				_Logger.severe("Failed to connect MQTT client to broker.");
 				
@@ -496,9 +495,13 @@ public class DeviceDataManager implements IDataMessageListener
 			}
 		}
 		
-		// TODO: Other calls may need to be included, such as starting
-		// the CoAP client instead of the CoAP server, depending on
-		// your configuration settings
+		if (this.sysPerfMgr != null) {
+			this.sysPerfMgr.startManager();
+		}
+		
+		if (this.redisClient != null) {
+			this.redisClient.connectClient();
+		}
 		
 		if (this.enableCoapServer && this.coapServer != null) {
 			if (this.coapServer.startServer()) {
@@ -508,9 +511,6 @@ public class DeviceDataManager implements IDataMessageListener
 			}
 		}
 		
-		if (this.sysPerfMgr != null) {
-			this.sysPerfMgr.startManager();
-		}
 	}
 	
 	public void stopManager()
@@ -610,6 +610,14 @@ public class DeviceDataManager implements IDataMessageListener
 		if (this.enableCoapServer) {
 			this.coapServer = new CoapServerGateway(this);
 		}
+		/*
+		if (ConfigConst.DEFAULT_CLOUD_PROVIDER == ConfigConst.CLOUD_PROVIDER_MQTT) {
+		    this.cloudClient = new MqttCloudClientConnector();
+		} else if (ConfigConst.DEFAULT_CLOUD_PROVIDER == ConfigConst.CLOUD_PROVIDER_COAP) {
+		    this.cloudClient = new CoapCloudClientConnector();
+		} else if (ConfigConst.DEFAULT_CLOUD_PROVIDER == ConfigConst.CLOUD_PROVIDER_UBIDOTS) {
+		    this.cloudClient = new UbidotsCloudClient();
+		}*/
 	}
 	
 	private void handleIncomingDataAnalysis(ResourceNameEnum resource, ActuatorData data)
@@ -624,6 +632,4 @@ public class DeviceDataManager implements IDataMessageListener
 			}
 		}
 	}
-
-	
 }
