@@ -76,9 +76,17 @@ public class DataUtil
 		return jsonData;
 	}
 	
-	public String actuatorDataToTimeAndValueJson(ActuatorData actuatorData)
+	public String actuatorDataToTimeAndValueJson(ActuatorData data)
 	{
-		return null;
+		String jsonData = null;
+		
+		if (data != null) {
+			Gson gson = new Gson();
+			TimeAndValuePayloadData tvData = new TimeAndValuePayloadData(data);
+			jsonData = gson.toJson(tvData);
+		}
+
+		return jsonData;
 	}
 	
 	public String sensorDataToJson(SensorData sensorData)
@@ -93,9 +101,17 @@ public class DataUtil
 		return jsonData;
 	}
 	
-	public String sensorDataToTimeAndValueJson(SensorData sensorData)
+	public String sensorDataToTimeAndValueJson(SensorData data)
 	{
-		return null;
+		String jsonData = null;
+		
+		if (data != null) {
+			Gson gson = new Gson();
+			TimeAndValuePayloadData tvData = new TimeAndValuePayloadData(data);
+			jsonData = gson.toJson(tvData);
+		}
+
+		return jsonData;
 	}
 	
 	public String systemPerformanceDataToJson(SystemPerformanceData sysPerfData)
