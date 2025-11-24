@@ -124,7 +124,7 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 		
 		// NOTE: If using a random clientID for each new connection,
 		// clean session should be 'true'; see MQTT spec for details
-		this.connOpts.setCleanSession(false);
+		this.connOpts.setCleanSession(true);
 		
 		// NOTE: Auto-reconnect can be a useful connection recovery feature
 		this.connOpts.setAutomaticReconnect(true);
@@ -172,6 +172,10 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 			
 			if (! this.mqttClient.isConnected()) {
 				_Logger.info("MQTT client connecting to broker: " + this.brokerAddr);
+				_Logger.info("Connection options - Username: " + (this.connOpts.getUserName() != null ? "SET (length=" + this.connOpts.getUserName().length() + ")" : "NULL"));
+				_Logger.info("Connection options - Password: " + (this.connOpts.getPassword() != null ? "SET (length=" + this.connOpts.getPassword().length + ")" : "NULL"));
+				_Logger.info("Connection options - CleanSession: " + this.connOpts.isCleanSession());
+				_Logger.info("Connection options - KeepAlive: " + this.connOpts.getKeepAliveInterval());
 				this.mqttClient.connect(this.connOpts);
 				return true;
 			} else {
@@ -478,6 +482,8 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 	public void messageArrived(String topic, MqttMessage message) throws Exception
 	{
 	    String payload = new String(message.getPayload());
+	    _Logger.info(">>> MQTT messageArrived - Topic: " + topic + ", Payload: " + payload);
+
 	    try {
 	        if (topic.equals(ResourceNameEnum.CDA_ACTUATOR_RESPONSE_RESOURCE.getResourceName())) {
 	            ActuatorData ad = DataUtil.getInstance().jsonToActuatorData(payload);
@@ -490,8 +496,11 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 
 	        if (topic.equals(ResourceNameEnum.CDA_SENSOR_MSG_RESOURCE.getResourceName())) {
 	            SensorData sd = DataUtil.getInstance().jsonToSensorData(payload);
+	            _Logger.info(">>> Parsed SensorData - Name: " + sd.getName() + ", Value: " + sd.getValue());
 	            if (this.dataMsgListener != null) {
+	                _Logger.info(">>> Calling handleSensorMessage...");
 	                this.dataMsgListener.handleSensorMessage(ResourceNameEnum.CDA_SENSOR_MSG_RESOURCE, sd);
+	                _Logger.info(">>> handleSensorMessage returned");
 	            }
 	            return;
 	        }
@@ -522,7 +531,56 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 	 */
 	private void initClientParameters(String configSectionName)
 	{
-		// TODO: implement this
+		ConfigUtil configUtil = ConfigUtil.getInstance();
+
+		this.host =
+		    configUtil.getProperty(
+		        configSectionName, ConfigConst.HOST_KEY, ConfigConst.DEFAULT_HOST);
+
+		this.port =
+		    configUtil.getInteger(
+		        configSectionName, ConfigConst.PORT_KEY, ConfigConst.DEFAULT_MQTT_PORT);
+
+		this.brokerKeepAlive =
+		    configUtil.getInteger(
+		        configSectionName, ConfigConst.KEEP_ALIVE_KEY, ConfigConst.DEFAULT_KEEP_ALIVE);
+
+		this.useAsyncClient =
+		    configUtil.getBoolean(
+		        configSectionName, ConfigConst.USE_ASYNC_CLIENT_KEY);
+
+		// Generate or load client ID
+		this.clientID = MqttClient.generateClientId();
+
+		// Initialize persistence
+		this.persistence = new MemoryPersistence();
+
+		// Build broker address
+		this.brokerAddr = this.protocol + "://" + this.host + ":" + this.port;
+
+		// Initialize connection options
+		this.connOpts = new MqttConnectOptions();
+		this.connOpts.setKeepAliveInterval(this.brokerKeepAlive);
+		this.connOpts.setCleanSession(true);
+		this.connOpts.setAutomaticReconnect(true);
+
+		// Check if authentication is enabled
+		boolean enableAuth = configUtil.getBoolean(configSectionName, ConfigConst.ENABLE_AUTH_KEY);
+		if (enableAuth) {
+			initCredentialConnectionParameters(configSectionName);
+		}
+
+		// Check if encryption is enabled
+		boolean enableCrypt = configUtil.getBoolean(configSectionName, ConfigConst.ENABLE_CRYPT_KEY);
+		if (enableCrypt) {
+			int securePort = configUtil.getInteger(configSectionName, ConfigConst.SECURE_PORT_KEY, ConfigConst.DEFAULT_MQTT_SECURE_PORT);
+			this.port = securePort;
+			this.protocol = ConfigConst.DEFAULT_MQTT_SECURE_PROTOCOL;
+			this.brokerAddr = this.protocol + "://" + this.host + ":" + this.port;
+			initSecureConnectionParameters(configSectionName);
+		}
+
+		_Logger.info("MQTT client initialized with broker: " + this.brokerAddr + ", clientID: " + this.clientID);
 	}
 	
 	/**
@@ -533,7 +591,40 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 	 */
 	private void initCredentialConnectionParameters(String configSectionName)
 	{
-		// TODO: implement this
+		ConfigUtil configUtil = ConfigUtil.getInstance();
+
+		try {
+			_Logger.info("Loading credentials for section: " + configSectionName);
+
+			// Load credentials using the config section name (not the file path)
+			Properties credProps = configUtil.getCredentials(configSectionName);
+
+			if (credProps != null) {
+				String username = credProps.getProperty(ConfigConst.USER_NAME_TOKEN_KEY, "");
+				String authToken = credProps.getProperty(ConfigConst.USER_AUTH_TOKEN_KEY, "");
+
+				_Logger.info("Username from creds: " + (username != null ? username : "null"));
+				_Logger.info("AuthToken loaded: " + (authToken != null && !authToken.isEmpty() ? "YES (length=" + authToken.length() + ")" : "NO"));
+
+				// For Ubidots, if authToken exists, use it as the username with empty password
+				if (authToken != null && !authToken.isEmpty()) {
+					// Ubidots uses TOKEN as username and empty password
+					this.connOpts.setUserName(authToken);
+					this.connOpts.setPassword(new char[0]);
+					_Logger.info("MQTT credentials set - Ubidots auth token as username");
+				} else if (username != null && !username.isEmpty()) {
+					// Traditional username/password authentication
+					this.connOpts.setUserName(username);
+					_Logger.info("MQTT username set from credentials.");
+				} else {
+					_Logger.warning("No valid credentials found in properties.");
+				}
+			} else {
+				_Logger.warning("No credentials found for section: " + configSectionName);
+			}
+		} catch (Exception e) {
+			_Logger.log(Level.WARNING, "Failed to load MQTT credentials.", e);
+		}
 	}
 	
 	/**
@@ -546,4 +637,6 @@ public class MqttClientConnector implements IPubSubClient, MqttCallbackExtended
 	{
 		// TODO: implement this
 	}
+	
+	
 }

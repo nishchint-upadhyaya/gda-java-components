@@ -147,7 +147,7 @@ public class MqttClientConnectorTest
 	/**
 	 * Test method for {@link programmingtheiot.gda.connection.MqttClientConnector#publishMessage(programmingtheiot.common.ResourceNameEnum, java.lang.String, int)}.
 	 */
-//	@Test
+	// @Test
 	public void testPublishAndSubscribeTwoClients()
 	{
 		int qos = 0;
@@ -192,7 +192,7 @@ public class MqttClientConnectorTest
 	/**
 	 * Test method for {@link programmingtheiot.gda.connection.MqttClientConnector#publishMessage(programmingtheiot.common.ResourceNameEnum, java.lang.String, int)}.
 	 */
-//	@Test
+	// @Test
 	public void testIntegrateWithCdaPublishCdaCmdTopic()
 	{
 		int qos = 1;
@@ -212,7 +212,7 @@ public class MqttClientConnectorTest
 	/**
 	 * Test method for {@link programmingtheiot.gda.connection.MqttClientConnector#publishMessage(programmingtheiot.common.ResourceNameEnum, java.lang.String, int)}.
 	 */
-//	@Test
+	// @Test
 	public void testIntegrateWithCdaSubscribeCdaMgmtTopic()
 	{
 		int qos = 1;
@@ -238,7 +238,7 @@ public class MqttClientConnectorTest
 		assertTrue(this.mqttClient.disconnectClient());
 	}
 
-	@Test
+	// @Test
 	public void testActuatorCommandResponseSubscription()
 	{
 		int qos = 0;

@@ -30,7 +30,7 @@ import static org.junit.Assert.*;
 public class UbidotsIntegrationIT {
 
     // ===== Student-configurable via environment variables =====
-    private static final String TOKEN  = envOr("UBI_TOKEN", "BBUS-tEah5Lv9cCQel7UL4MZGlDLCDUKABz");            // required for HTTP
+    private static final String TOKEN  = envOr("UBI_TOKEN", "BBUS-3rgILmKp22SMpBANAHNNjDuVGj6QOU");            // required for HTTP
     private static final String DEVICE = envOr("UBI_DEVICE", "machine-a");    // default device label
     private static final String URL    = "https://industrial.api.ubidots.com/api/v1.6/devices/" + DEVICE;
 

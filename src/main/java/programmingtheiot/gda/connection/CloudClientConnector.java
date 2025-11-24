@@ -87,12 +87,19 @@ public class CloudClientConnector implements ICloudClient, IConnectionListener
 	{
 		if (resource == null || data == null) return false;
 
+		_Logger.info(">>> sendEdgeDataToCloud CALLED - Name: " + data.getName() + ", Value: " + data.getValue());
+
 		String payload = this.useTimeAndValuePayload
 			? DataUtil.getInstance().sensorDataToTimeAndValueJson(data)
-			: DataUtil.getInstance().sensorDataToJson(data);
+			: DataUtil.getInstance().sensorDataToValueJson(data);
 
 		String topic = buildUbidotsTopic(resource, data.getName());
-		return publishMessageToCloud(topic, payload);
+		_Logger.info("Publishing to topic: " + topic);
+		_Logger.info("Payload: " + payload);
+
+		boolean result = publishMessageToCloud(topic, payload);
+		_Logger.info(">>> sendEdgeDataToCloud FINISHED - Result: " + result);
+		return result;
 	}
 
 	@Override

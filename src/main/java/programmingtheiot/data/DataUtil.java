@@ -80,6 +80,39 @@ public class DataUtil
 		return jsonData;
 	}
 
+	/**
+	 * Generates the Ubidots variable payload expected when publishing to
+	 * /v1.6/devices/{device}/{variable} topics.
+	 * Example: {"value":42.0,"timestamp":1700000000000,"context":{"lat":0.0,"lng":0.0}}
+	 */
+	public String sensorDataToValueJson(SensorData data)
+	{
+		if (data == null) return "{}";
+
+		try {
+			org.json.JSONObject payload = new org.json.JSONObject();
+			payload.put("value", data.getValue());
+
+			// Uncomment the following lines to include timestamp in the payload
+			// long ts = data.getTimeStampMillis();
+			// if (ts > 0) {
+			// 	payload.put("timestamp", ts);
+			// }
+
+			// Add context with location data if available
+			if (data.getLatitude() != 0.0 || data.getLongitude() != 0.0) {
+				org.json.JSONObject context = new org.json.JSONObject();
+				context.put("lat", data.getLatitude());
+				context.put("lng", data.getLongitude());
+				payload.put("context", context);
+			}
+
+			return payload.toString();
+		} catch (Exception e) {
+			return "{}";
+		}
+	}
+
 	public String systemPerformanceDataToJson(SystemPerformanceData sysPerfData)
 	{
 		String jsonData = null;
@@ -172,7 +205,7 @@ public class DataUtil
 	        org.json.JSONObject payload = new org.json.JSONObject();
 
 	        payload.put("value", data.getValue());
-	        payload.put("timestamp", data.getTimeStamp());
+	        payload.put("timestamp", data.getTimeStampMillis());
 
 	        // Use actuator name (e.g., "LedActuator") as the key
 	        String varName = (data.getName() != null && !data.getName().isEmpty())
@@ -204,7 +237,7 @@ public class DataUtil
 			org.json.JSONObject payload = new org.json.JSONObject();
 
 			payload.put("value", data.getValue());
-			payload.put("timestamp", data.getTimeStamp());
+			payload.put("timestamp", data.getTimeStampMillis());
 
 			String varName = (data.getName() != null && !data.getName().isEmpty())
 					? data.getName()
