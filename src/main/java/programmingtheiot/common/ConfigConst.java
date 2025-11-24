@@ -37,6 +37,15 @@ public class ConfigConst
 	
 	public static final float  DEFAULT_VAL = 0.0f;
 	
+	// --- Cloud client extras (MQTT identity & topic shaping)
+	public static final String CLIENT_ID_KEY        = "clientId";          // e.g., auto or fixed client ID
+	public static final String DEVICE_LABEL_KEY     = "deviceLabel";       // e.g., "gda-1" (Ubidots device label)
+	public static final String ACTUATOR_RESP_TOPIC_KEY = "actuatorResponseTopic"; // optional downlink topic
+
+	// --- Ubidots optional variable-name overrides (map ResourceNameEnum -> variable)
+	public static final String UBI_SENSOR_VAR_KEY   = "sensorVar";         // default "sensor"
+	public static final String UBI_SYSPERF_VAR_KEY  = "systemVar";         // default "system"
+	
 	// for purposes of this library, float precision is more then sufficient
 	public static final float  DEFAULT_LAT = DEFAULT_VAL;
 	public static final float  DEFAULT_LON = DEFAULT_VAL;

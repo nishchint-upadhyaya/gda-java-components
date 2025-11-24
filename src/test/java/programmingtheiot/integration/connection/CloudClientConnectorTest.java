@@ -72,7 +72,7 @@ public class CloudClientConnectorTest
 	/**
 	 * Test method for {@link programmingtheiot.gda.connection.UbidotsMqttCloudClientConnector#connectClient()}.
 	 */
-//	@Test
+	@Test
 	public void testCloudClientConnectAndDisconnect()
 	{
 		this.cloudClient.setDataMessageListener(new DefaultDataMessageListener());
@@ -95,7 +95,7 @@ public class CloudClientConnectorTest
 	/**
 	 * Test method
 	 */
-	@Test
+	// @Test
 	public void testIntegratedCloudClientConnectAndDisconnect()
 	{
 		DeviceDataManager ddm = new DeviceDataManager();
@@ -117,7 +117,7 @@ public class CloudClientConnectorTest
 	/**
 	 * Test method for {@link programmingtheiot.gda.connection.UbidotsMqttCloudClientConnector#publishMessage(programmingtheiot.common.ResourceNameEnum, java.lang.String, int)}.
 	 */
-//	@Test
+	// @Test
 	public void testPublishAndSubscribe()
 	{
 		this.cloudClient.setDataMessageListener(new DefaultDataMessageListener());

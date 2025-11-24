@@ -11,6 +11,7 @@
 # Cloud client configuration information
 #
 [Cloud.GatewayService]
+cloudServiceName = Ubidots
 credFile       = ./cred/PiotCloudCred.props
 certFile       = ./cert/PiotCloudCert.pem
 host           = localhost
@@ -23,6 +24,25 @@ enableAuth     = True
 enableCrypt    = True
 baseUrl        = 
 baseTopic      = 
+
+[Cloud.GatewayService.Ubidots]
+cloudServiceName = Ubidots
+credFile       = /Users/nupadhyaya/Software/GitHub/programmingtheiot/connecteddevices/cred/UbidotsCloudCred.props
+certFile       = /Users/nupadhyaya/Software/GitHub/programmingtheiot/connecteddevices/cert/UbidotsCloudCert.pem
+host           = industrial.api.ubidots.com
+port           = 1883
+securePort     = 8883
+defaultQoS     = 0
+keepAlive      = 30
+enableAuth     = True
+#enableCrypt    = True
+enableCrypt    = False
+baseUrl        = https://things.ubidots.com/api/v1.6/
+baseTopic      = /v1.6/devices/
+deviceLabel      = gda-1
+sensorVar        = sensor
+systemVar        = system
+useTimeAndValuePayload = False   # enables Ubidots time/value format
 
 #
 # SMTP client configuration information
@@ -70,10 +90,10 @@ enableConfirmedMsgs = True
 deviceLocationID        = gatewaydevice001
 enableLogging           = True
 pollCycleSecs           = 5
-enableMqttClient        = False
-enableCoapServer        = True
+enableMqttClient        = True
+enableCoapServer        = False
 enableCoapClient        = False
-enableCloudClient       = False
+enableCloudClient       = True
 enableSmtpClient        = False
 enablePersistenceClient = False
 enableSystemPerformance = True
