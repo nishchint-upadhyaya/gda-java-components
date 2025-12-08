@@ -37,7 +37,7 @@ public class UbidotsCloudClient extends BaseCloudClient
         }*/
     	// hardcode for now:
     	
-    	 opts.setUserName("BBUS-tEah5Lv9cCQel7UL4MZGlDLCDUKABz");
+    	 opts.setUserName("BBUS-3rgILmKp22SMpBANAHNNjDuVGj6QOU");
          opts.setPassword(new char[0]);
          
         // TLS: often handled by the broker with default CA; if you have custom certs, wire SSLSocketFactory here.
